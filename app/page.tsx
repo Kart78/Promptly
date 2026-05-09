@@ -1,7 +1,7 @@
 // app/(marketing)/page.tsx
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, Sparkles, Zap, Code2, BookOpen } from 'lucide-react'
+import { ArrowRight, Sparkles, Zap, BookOpen } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Home',
