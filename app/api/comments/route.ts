@@ -18,12 +18,10 @@ export async function POST(request: NextRequest) {
     VALUES (gen_random_uuid()::text, ${content.trim()}, ${postId}, ${session.user.id}, NOW())
     RETURNING id, content, "postId", "authorId", "createdAt"
   `
-  const comment = rows[0]
 
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { xp: { increment: 5 } },
-  })
+  await prisma.$executeRaw`
+    UPDATE "User" SET xp = xp + 5 WHERE id = ${session.user.id}
+  `
 
-  return NextResponse.json(comment)
+  return NextResponse.json(rows[0] ?? {})
 }
