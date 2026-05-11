@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getLevelFromXP } from '@/lib/constants'
-
+export const dynamic = 'force-dynamic'
 export default async function MembersPage() {
   const members = await prisma.user.findMany({
     orderBy: { xp: 'desc' },
