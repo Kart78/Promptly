@@ -9,21 +9,16 @@ export async function POST(request: NextRequest) {
   }
 
   const { postId, content } = await request.json()
-
   if (!content?.trim()) {
     return NextResponse.json({ error: 'Content required' }, { status: 400 })
   }
 
-  const comment = await prisma.comment.create({
-    data: {
-      content: content.trim(),
-      post: { connect: { id: postId } },
-      author: { connect: { id: session.user.id } },
-    },
-    include: {
-      author: { select: { id: true, name: true, image: true, username: true } },
-    },
-  })
+  const rows = await prisma.$queryRaw<any[]>`
+    INSERT INTO "Comment" (id, content, "postId", "authorId", "createdAt")
+    VALUES (gen_random_uuid()::text, ${content.trim()}, ${postId}, ${session.user.id}, NOW())
+    RETURNING id, content, "postId", "authorId", "createdAt"
+  `
+  const comment = rows[0]
 
   await prisma.user.update({
     where: { id: session.user.id },
