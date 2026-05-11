@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
   const comment = await prisma.comment.create({
     data: {
       content: content.trim(),
-      postId,
-      authorId: session.user.id,
+      post: { connect: { id: postId } },
+      author: { connect: { id: session.user.id } },
     },
     include: {
       author: { select: { id: true, name: true, image: true, username: true } },
