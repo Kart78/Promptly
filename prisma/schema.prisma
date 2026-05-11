@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,273 +7,120 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model User {
-  id                    Int                @id @default(autoincrement())
-  email                 String             @unique
-  name                  String?
-  username              String?            @unique
-  bio                   String?
-  avatarUrl             String?
-  role                  Role               @default(USER)
-  subscriptionTier      SubscriptionTier   @default(FREE)
-  aiCredits             Int                @default(100)
-  emailVerified         DateTime?
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
-  
-  // Relations
-  blogPosts             BlogPost[]
-  aiGenerations         AiGeneration[]
-  comments              Comment[]
-  analyticsEvents       AnalyticsEvent[]
-  toolSessions          ToolSession[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  bio           String?
+  username      String?   @unique
+  role          Role      @default(USER)
+  xp            Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  @@map("users")
+  accounts    Account[]
+  sessions    Session[]
+  posts       Post[]
+  comments    Comment[]
+  likes       Like[]
+  following   Follow[]  @relation("Following")
+  followers   Follow[]  @relation("Followers")
 }
 
-// Blog Post model
-model BlogPost {
-  id                Int                @id @default(autoincrement())
-  title             String
-  slug              String             @unique
-  content           String             // MDX content
-  excerpt           String?
-  authorId          Int
-  author            User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  featuredImage     String?
-  category          String?
-  tags              String?            // Comma-separated
-  published         Boolean            @default(false)
-  publishedAt       DateTime?
-  viewCount         Int                @default(0)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  
-  // Relations
-  comments          Comment[]
-  seoMetadata       SeoMetadata?
-
-  @@index([slug])
-  @@index([publishedAt])
-  @@map("blog_posts")
+model Post {
+  id        String   @id @default(cuid())
+  title     String?
+  content   String   @db.Text
+  category  String   @default("general")
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  likes     Like[]
 }
 
-// Tool model
-model Tool {
-  id                Int                @id @default(autoincrement())
-  name              String
-  slug              String             @unique
-  description       String?
-  longDescription   String?            // For tool detail page
-  icon              String?            // Icon emoji or URL
-  category          String?
-  tags              String?            // Comma-separated
-  featured          Boolean            @default(false)
-  published         Boolean            @default(true)
-  
-  // AI & Pricing
-  aiPowered         Boolean            @default(false)
-  aiModel           String?            // e.g., "gpt-4-turbo"
-  creditCost        Int                @default(0)
-  
-  // SEO & Content
-  ogImage           String?
-  faqJson           String?            // JSON array of FAQs
-  relatedToolIds    String?            // Comma-separated IDs
-  
-  // Tracking
-  launchDate        DateTime?
-  viewCount         Int                @default(0)
-  usageCount        Int                @default(0)
-  
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  
-  // Relations
-  sessions          ToolSession[]
-  seoMetadata       SeoMetadata?
-
-  @@index([slug])
-  @@index([category])
-  @@index([featured])
-  @@map("tools")
-}
-
-// Tool Session/Usage model
-model ToolSession {
-  id                Int                @id @default(autoincrement())
-  toolId            Int
-  tool              Tool               @relation(fields: [toolId], references: [id], onDelete: Cascade)
-  userId            Int?
-  user              User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  inputData         String?            // JSON of input
-  outputData        String?            // JSON of output
-  duration          Int?               // milliseconds
-  
-  createdAt         DateTime           @default(now())
-
-  @@index([toolId])
-  @@index([userId])
-  @@map("tool_sessions")
-}
-
-// AI Generation model
-model AiGeneration {
-  id                Int                @id @default(autoincrement())
-  userId            Int
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  toolId            Int?
-  prompt            String
-  output            String?
-  model             String             // "gpt-4-turbo", etc
-  tokensUsed        Int                @default(0)
-  costCents         Int                @default(0)
-  
-  createdAt         DateTime           @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
-  @@map("ai_generations")
-}
-
-// Newsletter Subscription model
-model NewsletterSubscription {
-  id                Int                @id @default(autoincrement())
-  email             String             @unique
-  name              String?
-  tags              String?            // Interest tags
-  
-  subscribedAt      DateTime           @default(now())
-  unsubscribedAt    DateTime?
-  lastSentAt        DateTime?
-  bounceCount       Int                @default(0)
-
-  @@map("newsletter_subscriptions")
-}
-
-// Comment model
 model Comment {
-  id                Int                @id @default(autoincrement())
-  blogPostId        Int
-  blogPost          BlogPost           @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
-  
-  userId            Int?
-  user              User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  authorName        String?
-  authorEmail       String?
-  content           String
-  approved          Boolean            @default(false)
-  
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-
-  @@index([blogPostId])
-  @@map("comments")
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  authorId  String
+  postId    String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
-// Analytics Event model
-model AnalyticsEvent {
-  id                Int                @id @default(autoincrement())
-  eventType         String             // "tool_view", "tool_use", "blog_view", etc
-  
-  userId            Int?
-  user              User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  metadata          String?            // JSON object for flexible data
-  referer           String?
-  userAgent         String?
-  ipAddress         String?
-  
-  createdAt         DateTime           @default(now())
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  @@index([eventType])
-  @@index([userId])
-  @@index([createdAt])
-  @@map("analytics_events")
+  @@unique([userId, postId])
 }
 
-// SEO Metadata model
-model SeoMetadata {
-  id                Int                @id @default(autoincrement())
-  title             String
-  description       String?
-  keywords          String?            // Comma-separated
-  canonicalUrl      String?
-  ogImage           String?
-  ogTitle           String?
-  ogDescription     String?
-  
-  blogPostId        Int?               @unique
-  blogPost          BlogPost?          @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
-  
-  toolId            Int?               @unique
-  tool              Tool?              @relation(fields: [toolId], references: [id], onDelete: Cascade)
-  
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
 
-  @@map("seo_metadata")
+  @@unique([followerId, followingId])
 }
 
-// Feature Flag model
-model FeatureFlag {
-  id                Int                @id @default(autoincrement())
-  name              String             @unique
-  enabled           Boolean            @default(false)
-  description       String?
-  
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-
-  @@map("feature_flags")
+model App {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  url         String?
+  githubUrl   String?
+  tag         String
+  status      AppStatus @default(LIVE)
+  featured    Boolean  @default(false)
+  icon        String?
+  createdAt   DateTime @default(now())
 }
 
-// Donation/Payment model for monetization
-model Payment {
-  id                Int                @id @default(autoincrement())
-  userId            Int?
-  email             String?
-  
-  amount            Int                // Amount in cents
-  currency          String             @default("USD")
-  type              PaymentType        // "donation", "credit_purchase", "subscription"
-  
-  stripeId          String?            @unique
-  status            PaymentStatus      @default(PENDING)
-  
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-
-  @@index([email])
-  @@map("payments")
-}
-
-// Enums
 enum Role {
-  ADMIN
-  MODERATOR
   USER
+  ADMIN
 }
 
-enum SubscriptionTier {
-  FREE
-  PRO
-  ENTERPRISE
-}
-
-enum PaymentStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  REFUNDED
-}
-
-enum PaymentType {
-  DONATION
-  CREDIT_PURCHASE
-  SUBSCRIPTION
+enum AppStatus {
+  LIVE
+  IN_PROGRESS
+  ARCHIVED
 }

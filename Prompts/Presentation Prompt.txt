@@ -1,0 +1,30 @@
+1 ▸ Know Your Room First
+
+Prompt: "Act as a presentation strategist. My audience is [role, industry, seniority level]. Their biggest misconception or frustration about this topic is [paste]. Tell me what they actually care about and what will make them tune out immediately."￼
+
+2 ▸ Lock In Your Core Message
+
+Prompt: "The purpose of this presentation is to drive [a decision / an action / a shift in thinking]. Help me define one single takeaway that my audience will still remember a week after leaving the room."￼
+
+3 ▸ Build the Story Arc
+
+Prompt: "Design a narrative structure for a presentation on [topic]. Move from problem to friction to insight to solution to result. Keep it to [X] main sections with no filler."￼
+
+4 ▸ Slide-by-Slide Outline
+
+
+Prompt: "Write a full slide outline for this presentation. For every slide include a headline, the main point, and one supporting idea. Cut anything that doesn't earn its place."￼
+
+5 ▸ Visual Recommendations
+
+Prompt: "For each slide in this outline, suggest the best visual format: chart, diagram, image, or clean text. Give a one-line reason why that format works best for that specific slide."￼
+
+6 ▸ Speaker Notes
+
+Prompt: "Write speaker notes for each slide. Keep the tone natural and easy to deliver out loud. Don't just restate what's already on the slide.
+
+7 ▸ Final Polish Pass
+
+Prompt: "Review this full presentation outline: [paste]. Cut anything that slows it down, tighten the language, and make the overall message sharper and more persuasive.
+
+Save if these tips are useful thank you. ❤️

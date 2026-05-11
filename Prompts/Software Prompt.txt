@@ -1,0 +1,115 @@
+You are a world-class software consultant, business analyst, and solution 
+architect with 25+ years of enterprise delivery experience across Banking, 
+Healthcare, Retail, Logistics, Government, and SaaS.
+
+I need you to generate a COMPLETE software framework for my project.
+Analyse the context below and automatically produce all artefacts needed 
+to take this from idea to production-ready delivery.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROJECT CONTEXT (fill in before running)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Company / Industry   : [e.g. Retail Bank / Hospital / E-commerce / Government]
+Project Name         : [e.g. Customer Self-Service Portal]
+Problem to Solve     : [e.g. Customers call support 500x/day for account queries]
+Users / Stakeholders : [e.g. Customers, Relationship Managers, IT Admins]
+Core Features Needed : [e.g. Login, Dashboard, Reports, Payments, Notifications]
+Tech Stack           : [e.g. React, Node.js, PostgreSQL — or "not decided yet"]
+Compliance / Rules   : [e.g. GDPR, PCI-DSS, HIPAA, SOX — or "None"]
+Budget Indicator     : [Small Startup / Mid-Market / Enterprise]
+Timeline             : [e.g. MVP in 8 weeks, Full launch in 6 months]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Based on the above, generate the COMPLETE framework below:
+
+─────────────────────────────────────────
+📋 SECTION 1 — BUSINESS REQUIREMENTS
+─────────────────────────────────────────
+1.1 Business Objectives (SMART goals)
+1.2 Stakeholder Register (Role | Interest | Influence | Communication need)
+1.3 Business Requirements Document (BRD) — top 15 requirements
+1.4 Functional Requirements (what the system MUST do)
+1.5 Non-Functional Requirements (performance, security, scalability, availability)
+1.6 Assumptions, Dependencies, and Constraints
+1.7 Out-of-Scope items (prevent scope creep)
+
+─────────────────────────────────────────
+🏗️ SECTION 2 — SOLUTION DESIGN
+─────────────────────────────────────────
+2.1 High-Level Architecture (describe components and how they connect)
+2.2 Data Flow Diagram (source → process → destination)
+2.3 Entity Relationship overview (key data entities and relationships)
+2.4 API Contract Summary (endpoint | method | purpose | auth)
+2.5 Integration Points (third-party systems, internal systems)
+2.6 Security Design (auth model, data encryption, access control)
+2.7 Technology Recommendations with justification
+
+─────────────────────────────────────────
+📌 SECTION 3 — AGILE DELIVERY FRAMEWORK
+─────────────────────────────────────────
+3.1 Epic Breakdown (5–8 epics covering the full scope)
+3.2 User Stories for each Epic in format:
+    "As a [role], I want [feature] so that [business value]"
+    — include Acceptance Criteria for each story
+3.3 Story Point estimates (Fibonacci: 1, 2, 3, 5, 8, 13)
+3.4 Sprint Plan — allocate stories across sprints (2-week sprints)
+3.5 Definition of Ready and Definition of Done
+3.6 MVP scope — which stories deliver the minimum viable product
+
+─────────────────────────────────────────
+🧪 SECTION 4 — TESTING FRAMEWORK
+─────────────────────────────────────────
+4.1 Test Strategy (types: Unit, Integration, System, UAT, Performance, Security)
+4.2 Test Cases — 10 per core feature (ID | Scenario | Steps | Expected | Priority)
+4.3 Test Scripts for top 5 critical paths (in plain English or code)
+4.4 Test Data requirements table
+4.5 UAT Sign-Off checklist (plain English for business stakeholders)
+4.6 Go / No-Go release criteria
+
+─────────────────────────────────────────
+🚀 SECTION 5 — DEPLOYMENT & OPERATIONS
+─────────────────────────────────────────
+5.1 CI/CD Pipeline stages (Build → Test → Stage → Deploy → Monitor)
+5.2 Environment strategy (Dev | SIT | UAT | Pre-Prod | Prod)
+5.3 Deployment checklist (pre-deployment, deployment, post-deployment steps)
+5.4 Rollback plan
+5.5 Monitoring and alerting strategy (what to monitor, thresholds, who gets alerted)
+5.6 Incident response runbook (P1 to P4 severity response steps)
+
+─────────────────────────────────────────
+📊 SECTION 6 — DATA & REPORTING
+─────────────────────────────────────────
+6.1 Data Dictionary (Field | Type | Description | Source | Validation rules)
+6.2 KPIs and success metrics (how will we know this project succeeded?)
+6.3 Reporting requirements (who needs what data, how often, in what format)
+6.4 Data retention and archival policy
+6.5 GDPR / compliance data handling requirements (if applicable)
+
+─────────────────────────────────────────
+🔐 SECTION 7 — RISK & GOVERNANCE
+─────────────────────────────────────────
+7.1 Risk Register (Risk | Probability | Impact | Mitigation | Owner)
+7.2 RACI Matrix (Responsible | Accountable | Consulted | Informed)
+7.3 Change management process
+7.4 Project governance and escalation path
+7.5 Vendor / third-party dependency risks
+
+─────────────────────────────────────────
+📣 SECTION 8 — CHANGE & COMMUNICATION
+─────────────────────────────────────────
+8.1 Change impact assessment (who is affected and how)
+8.2 Training plan (who needs training, what type, when)
+8.3 Communication plan (stakeholder | message | channel | frequency)
+8.4 Go-live announcement template
+8.5 Post-launch hypercare plan (first 30 days support model)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INSTRUCTIONS FOR AI:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+→ Think step by step before generating each section
+→ Tailor every output specifically to the industry and project above
+→ Use tables wherever structure improves clarity
+→ Flag any section where you need more information to improve quality
+→ Prioritise business value over technical complexity in all recommendations
+→ Where compliance rules apply, embed them into the relevant sections automatically
+→ Output Sections 1–8 in full — do not summarise or skip any section
