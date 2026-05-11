@@ -8,10 +8,10 @@ import { CATEGORIES } from '@/lib/constants'
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { category?: string }
+  searchParams: Promise<{ category?: string }>
 }) {
   const session = await auth()
-  const category = searchParams?.category || 'all'
+  const { category = 'all' } = await searchParams
 
   const posts = await prisma.post.findMany({
     where: category !== 'all' ? { category } : {},
@@ -29,7 +29,7 @@ export default async function Home({
       {/* Main feed */}
       <div className="flex-1 min-w-0">
         {/* Category tabs */}
-        <div className="flex gap-1 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+        <div className="flex gap-1 overflow-x-auto pb-2 mb-4">
           <a
             href="/"
             className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors ${
@@ -82,4 +82,3 @@ export default async function Home({
     </div>
   )
 }
-
