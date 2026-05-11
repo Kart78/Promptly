@@ -1,16 +1,16 @@
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import { PostCard } from '@/components/feed/PostCard'
 import { CommentSection } from '@/components/feed/CommentSection'
 
-export default async function PostPage({ params }: { params: { id: string } }) {
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
+  const { id } = await params
 
   const post = await prisma.post.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       author: { select: { id: true, name: true, image: true, username: true, xp: true } },
       _count: { select: { comments: true, likes: true } },

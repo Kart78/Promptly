@@ -2,18 +2,20 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { PostCard } from '@/components/feed/PostCard'
 import { ActivityHeatmap } from '@/components/profile/ActivityHeatmap'
 import { getLevelFromXP } from '@/lib/constants'
-import { Calendar, Link as LinkIcon } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
-export default async function ProfilePage({ params }: { params: { username: string } }) {
+export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const session = await auth()
+  const { username } = await params
 
   const user = await prisma.user.findFirst({
     where: {
-      OR: [{ username: params.username }, { id: params.username }],
+      OR: [{ username }, { id: username }],
     },
     include: {
       _count: { select: { posts: true, followers: true, following: true } },
@@ -64,7 +66,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
                 className="rounded-full border-2 border-[#c9a96e] mb-3"
               />
             ) : (
-              <div className="w-18 h-18 rounded-full bg-[#c9a96e] flex items-center justify-center text-2xl font-bold text-[#0e0e0e] mb-3">
+              <div className="w-16 h-16 rounded-full bg-[#c9a96e] flex items-center justify-center text-2xl font-bold text-[#0e0e0e] mb-3">
                 {user.name?.[0]}
               </div>
             )}
