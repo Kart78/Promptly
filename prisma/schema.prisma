@@ -124,5 +124,14 @@ model App {
   createdAt   DateTime  @default(now())
 }
 
-enum Role { USER ADMIN }
-enum AppStatus { LIVE IN_PROGRESS ARCHIVED }
+enum Role {
+  USER
+  ADMIN
+}
+enum AppStatus {
+  LIVE
+  IN_PROGRESS
+  ARCHIVED
+}
+
+
