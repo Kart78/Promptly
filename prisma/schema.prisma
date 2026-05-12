@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
@@ -22,7 +22,6 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([provider, providerAccountId])
 }
 
@@ -47,25 +46,26 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts    Account[]
-  sessions    Session[]
-  posts       Post[]
-  comments    Comment[]
-  likes       Like[]
-  following   Follow[]  @relation("Following")
-  followers   Follow[]  @relation("Followers")
+  accounts      Account[]
+  sessions      Session[]
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  following     Follow[]       @relation("Following")
+  followers     Follow[]       @relation("Followers")
+  notifications Notification[]
 }
 
 model Post {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   title     String?
-  content   String   @db.Text
-  category  String   @default("general")
-  pinned    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  content   String    @db.Text
+  category  String    @default("general")
+  pinned    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments  Comment[]
   likes     Like[]
 }
@@ -87,7 +87,6 @@ model Like {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-
   @@unique([userId, postId])
 }
 
@@ -98,30 +97,32 @@ model Follow {
   createdAt   DateTime @default(now())
   follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
   following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
-
   @@unique([followerId, followingId])
 }
 
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model App {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   description String
   url         String?
   githubUrl   String?
   tag         String
   status      AppStatus @default(LIVE)
-  featured    Boolean  @default(false)
+  featured    Boolean   @default(false)
   icon        String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
-enum AppStatus {
-  LIVE
-  IN_PROGRESS
-  ARCHIVED
-}
+enum Role { USER ADMIN }
+enum AppStatus { LIVE IN_PROGRESS ARCHIVED }

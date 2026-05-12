@@ -1,109 +1,140 @@
 'use client'
-
-import Link from 'next/link'
-import Image from 'next/image'
 import { useState } from 'react'
-import { Heart, MessageCircle, Pin } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { getLevelFromXP } from '@/lib/constants'
-import type { PostWithAuthor } from '@/types'
 
-interface Props {
-  post: PostWithAuthor
-  currentUserId?: string
+interface Post {
+  id: string
+  title: string | null
+  content: string
+  category: string
+  pinned: boolean
+  createdAt: string
+  author: { id: string; name: string | null; image: string | null; username: string | null; xp: number }
+  _count: { comments: number; likes: number }
+  likes: { userId: string }[]
+  recentCommenters?: { image: string | null; name: string | null }[]
+  lastCommentAt?: string | null
 }
 
-export function PostCard({ post, currentUserId }: Props) {
-  const [liked, setLiked] = useState(post.likes?.some(l => l.userId === currentUserId))
+interface Props {
+  post: Post
+  currentUserId?: string
+  onClick?: () => void
+}
+
+function renderContent(text: string) {
+  return text
+    .replace(/@(\w+)/g, '<span class="mention">@$1</span>')
+    .replace(/#(\w+)/g, '<span class="hashtag">#$1</span>')
+}
+
+export function PostCard({ post, currentUserId, onClick }: Props) {
+  const router = useRouter()
+  const [liked, setLiked] = useState(post.likes?.some(l => l.userId === currentUserId) ?? false)
   const [likeCount, setLikeCount] = useState(post._count.likes)
   const level = getLevelFromXP(post.author.xp || 0)
 
-  async function handleLike() {
-    if (!currentUserId) return
-    setLiked(!liked)
-    setLikeCount(liked ? likeCount - 1 : likeCount + 1)
-    await fetch(`/api/likes`, {
+  async function handleLike(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!currentUserId) { router.push('/auth/signin'); return }
+    const wasLiked = liked
+    setLiked(!wasLiked)
+    setLikeCount(wasLiked ? likeCount - 1 : likeCount + 1)
+    await fetch('/api/likes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ postId: post.id }),
     })
   }
 
+  function handleCardClick() {
+    if (onClick) onClick()
+    else router.push(`/post/${post.id}`)
+  }
+
+  const timeAgo = formatDistanceToNow(new Date(post.createdAt), { addSuffix: false })
+  const lastComment = post.lastCommentAt
+    ? formatDistanceToNow(new Date(post.lastCommentAt), { addSuffix: true })
+    : null
+
   return (
-    <div className="bg-[#141414] border border-[#1e1e1e] rounded-xl p-4 hover:border-[#2a2a2a] transition-colors">
+    <div className="post-card" onClick={handleCardClick}>
       {post.pinned && (
-        <div className="flex items-center gap-1.5 text-xs text-[#c9a96e] font-mono mb-3">
-          <Pin size={11} /> PINNED
+        <div className="post-pin-bar">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L8 8H2l5 5-1.5 7L12 17l6.5 3L17 13l5-5h-6z"/></svg>
+          Pinned
         </div>
       )}
 
-      <div className="flex gap-3">
-        {/* Avatar */}
-        <Link href={`/profile/${post.author.username || post.author.id}`}>
-          {post.author.image ? (
-            <Image
-              src={post.author.image}
-              alt={post.author.name || ''}
-              width={36}
-              height={36}
-              className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
-            />
-          ) : (
-            <div className="w-9 h-9 rounded-full bg-[#c9a96e] flex items-center justify-center text-sm font-bold text-[#0e0e0e]">
-              {post.author.name?.[0]}
-            </div>
-          )}
+      <div className="post-header">
+        <Link href={`/profile/${post.author.username || post.author.id}`} onClick={e => e.stopPropagation()}>
+          <div className="avatar" style={{ width: 40, height: 40, background: '#eff6ff', color: 'var(--blue)', fontSize: 15 }}>
+            {post.author.image ? (
+              <img src={post.author.image} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
+            ) : (
+              post.author.name?.[0]?.toUpperCase()
+            )}
+          </div>
         </Link>
 
-        <div className="flex-1 min-w-0">
-          {/* Author row */}
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <Link
-              href={`/profile/${post.author.username || post.author.id}`}
-              className="text-sm font-medium text-[#e8e4dc] hover:text-[#c9a96e] transition-colors"
-            >
+        <div className="post-meta">
+          <div className="post-author-row">
+            <Link href={`/profile/${post.author.username || post.author.id}`} className="post-author" onClick={e => e.stopPropagation()}>
               {post.author.name}
             </Link>
-            <span className="text-xs font-mono text-[#c9a96e] bg-[#c9a96e]/10 px-1.5 py-0.5 rounded">
+            <div className="level-badge" title={`Level ${level.level} — ${level.label}`}>
               {level.level}
-            </span>
-            <span className="text-xs text-[#444]">·</span>
-            <span className="text-xs text-[#444]">
-              {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
-            </span>
-            <span className="text-xs font-mono text-[#333] border border-[#222] px-1.5 py-0.5 rounded">
-              {post.category}
-            </span>
+            </div>
           </div>
-
-          {/* Content */}
-          {post.title && (
-            <p className="text-base font-medium text-[#f0ece4] mb-1">{post.title}</p>
-          )}
-          <p className="text-sm text-[#aaa] leading-relaxed whitespace-pre-wrap">
-            {post.content}
-          </p>
-
-          {/* Actions */}
-          <div className="flex items-center gap-4 mt-3">
-            <button
-              onClick={handleLike}
-              className={`flex items-center gap-1.5 text-xs transition-colors ${
-                liked ? 'text-red-400' : 'text-[#555] hover:text-red-400'
-              }`}
-            >
-              <Heart size={13} fill={liked ? 'currentColor' : 'none'} />
-              {likeCount}
-            </button>
-            <Link
-              href={`/post/${post.id}`}
-              className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#888] transition-colors"
-            >
-              <MessageCircle size={13} />
-              {post._count.comments}
-            </Link>
+          <div className="post-meta-row">
+            <span>{timeAgo}</span>
+            <span>·</span>
+            <span className="cat-link">{post.category}</span>
           </div>
         </div>
+      </div>
+
+      {post.title && <div className="post-title">{post.title}</div>}
+
+      <div
+        className="post-body"
+        dangerouslySetInnerHTML={{ __html: renderContent(post.content) }}
+      />
+
+      <div className="post-footer">
+        <button className={`post-action ${liked ? 'liked' : ''}`} onClick={handleLike}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? '#ef4444' : 'none'} stroke={liked ? '#ef4444' : 'currentColor'} strokeWidth="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          {likeCount > 0 && likeCount}
+        </button>
+
+        <button className="post-action" onClick={e => { e.stopPropagation(); handleCardClick() }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          {post._count.comments > 0 && post._count.comments}
+        </button>
+
+        {/* Recent commenter avatars */}
+        {post.recentCommenters && post.recentCommenters.length > 0 && (
+          <div className="comment-avatars">
+            {post.recentCommenters.slice(0, 4).map((c, i) => (
+              <div key={i} className="avatar" style={{ width: 20, height: 20, fontSize: 8, background: '#e5e7eb', color: '#555', border: '2px solid white', marginLeft: i === 0 ? 0 : -6 }}>
+                {c.image ? (
+                  <img src={c.image} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : c.name?.[0]?.toUpperCase()}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {lastComment && (
+          <span className="new-comment-badge">New comment {lastComment}</span>
+        )}
       </div>
     </div>
   )

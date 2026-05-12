@@ -1,5 +1,4 @@
 'use client'
-
 import { SessionProvider } from 'next-auth/react'
 import { Toaster } from 'react-hot-toast'
 
@@ -10,11 +9,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <Toaster
         position="bottom-right"
         toastOptions={{
-          style: {
-            background: '#141414',
-            color: '#e8e4dc',
-            border: '1px solid #2a2a2a',
-          },
+          style: { borderRadius: '10px', fontSize: '14px' },
+          success: { iconTheme: { primary: '#16a34a', secondary: 'white' } },
         }}
       />
     </SessionProvider>
