@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  username      String?   @unique
+  password      String?
+  role          Role      @default(MEMBER)
+  bio           String?
+  xp            Int       @default(0)
+  level         Int       @default(1)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  followers     Follow[]       @relation("following")
+  following     Follow[]       @relation("follower")
+  notifications Notification[]
+}
+
+enum Role {
+  USER
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id           String   @id @default(cuid())
+  title        String?
+  content      String
+  category     String   @default("general")
+  pinned       Boolean  @default(false)
+  authorId     String
+  // Media attachments — Skool parity
+  youtubeUrl   String?
+  imageUrl     String?
+  linkUrl      String?
+  linkTitle    String?
+  linkImage    String?
+  fileUrl      String?
+  fileName     String?
+  fileType     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  likes     Like[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  postId    String
+  authorId  String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post     Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent   Comment?  @relation("replies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("replies")
+  likes    Like[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String?
+  commentId String?
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  message   String
+  read      Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  MENTION
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime?
+  link        String?
+  createdAt   DateTime  @default(now())
+}
