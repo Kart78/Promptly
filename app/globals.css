@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand: #4c6ef5;
+    --brand-light: #dbe4ff;
+  }
+  * { box-sizing: border-box; }
+  body { @apply bg-gray-50 text-gray-900 antialiased; }
+  /* Smooth scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-200 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-gray-300; }
+}
+
+@layer components {
+  /* Post card hover — BUG-02 */
+  .post-card {
+    @apply cursor-pointer transition-all duration-150;
+  }
+  .post-card:hover {
+    @apply shadow-sm border-gray-200;
+  }
+
+  /* Tiptap rich text editor */
+  .ProseMirror {
+    @apply outline-none min-h-[80px] text-sm text-gray-800 leading-relaxed;
+  }
+  .ProseMirror p { @apply mb-2 last:mb-0; }
+  .ProseMirror strong { @apply font-semibold; }
+  .ProseMirror em { @apply italic; }
+  .ProseMirror a { @apply text-brand-600 underline underline-offset-2; }
+  .ProseMirror code { @apply bg-gray-100 rounded px-1.5 py-0.5 font-mono text-xs text-gray-700; }
+  .ProseMirror pre { @apply bg-gray-900 text-gray-100 rounded-lg p-3 my-2 font-mono text-xs overflow-x-auto; }
+  .ProseMirror pre code { @apply bg-transparent text-gray-100 p-0; }
+  .ProseMirror blockquote { @apply border-l-4 border-brand-200 pl-3 italic text-gray-500 my-2; }
+  .ProseMirror ul { @apply list-disc ml-5 mb-2 space-y-0.5; }
+  .ProseMirror ol { @apply list-decimal ml-5 mb-2 space-y-0.5; }
+  .ProseMirror h2 { @apply text-lg font-semibold mb-2 mt-3; }
+  .ProseMirror h3 { @apply text-base font-semibold mb-1 mt-2; }
+  .ProseMirror p.is-editor-empty:first-child::before {
+    @apply text-gray-400 float-left h-0 pointer-events-none;
+    content: attr(data-placeholder);
+  }
+
+  /* Post content rendering */
+  .post-content p { @apply mb-2 last:mb-0; }
+  .post-content strong { @apply font-semibold; }
+  .post-content a { @apply text-brand-600 underline; }
+  .post-content code { @apply bg-gray-100 rounded px-1 font-mono text-xs; }
+  .post-content ul { @apply list-disc ml-4 mb-2; }
+  .post-content ol { @apply list-decimal ml-4 mb-2; }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* Clickable links in post content everywhere */
+.post-content a,
+.prose a {
+  @apply text-brand-600 underline underline-offset-2 cursor-pointer;
+}
+.post-content a:hover,
+.prose a:hover {
+  @apply text-brand-800;
+}
+/* ProseMirror rendered links in feed */
+.ProseMirror a {
+  @apply text-brand-600 underline cursor-pointer;
+  pointer-events: auto !important;
+}
+
+/* Modal animation */
+@keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slide-in-from-bottom-4 { from { transform: translateY(1rem); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+.animate-in { animation-fill-mode: both; animation-duration: 200ms; }
+.fade-in { animation-name: fade-in; }
+.slide-in-from-bottom-4 { animation-name: slide-in-from-bottom-4; }
+
+/* CRITICAL: Make all links in post content fully clickable */
+.post-content a,
+.post-content a:link,
+.post-content a:visited {
+  color: #4c6ef5;
+  text-decoration: underline;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1;
+}
+.post-content a:hover {
+  color: #3b5bdb;
+}
+/* ProseMirror editor links */
+.ProseMirror a {
+  color: #4c6ef5 !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
