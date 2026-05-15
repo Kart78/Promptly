@@ -2,6 +2,7 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import LinkExt from '@tiptap/extension-link'
+import Autolink from '@tiptap/extension-autolink'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -64,9 +65,18 @@ export function PostComposer({
   const editor = useEditor({
     extensions: [
       StarterKit,
+      // FIX: Autolink converts plain-text URLs to <a> tags as user types/pastes
+      Autolink.configure({
+        defaultProtocol: 'https',
+      }),
       LinkExt.configure({
         openOnClick: true,
-        HTMLAttributes: { class: 'text-brand-600 underline cursor-pointer', rel: 'noopener noreferrer', target: '_blank' },
+        autolink: false, // Let Autolink extension own auto-detection
+        HTMLAttributes: {
+          class: 'text-brand-600 underline cursor-pointer',
+          rel: 'noopener noreferrer',
+          target: '_blank',
+        },
       }),
       Placeholder.configure({ placeholder: 'Share something with the community…' }),
     ],
@@ -108,10 +118,28 @@ export function PostComposer({
     setShowMediaPanel(false)
   }
 
+  // FIX: Inserts URL as clickable link even when no text is selected
   const handleAddInlineLink = useCallback(() => {
     if (!linkInputValue) return
     const url = linkInputValue.startsWith('http') ? linkInputValue : `https://${linkInputValue}`
-    editor?.chain().focus().setLink({ href: url, target: '_blank' }).run()
+
+    const { from, to } = editor?.state.selection ?? { from: 0, to: 0 }
+    const hasSelection = from !== to
+
+    if (hasSelection) {
+      // Wrap selected text as a hyperlink
+      editor?.chain().focus().setLink({ href: url, target: '_blank' }).run()
+    } else {
+      // No selection — insert the URL itself as a clickable link
+      editor
+        ?.chain()
+        .focus()
+        .insertContent(
+          `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+        )
+        .run()
+    }
+
     setLinkInputValue('')
     setShowLinkInput(false)
   }, [editor, linkInputValue])
@@ -212,15 +240,22 @@ export function PostComposer({
                   </button>
                 </div>
 
-                {/* Inline link input */}
+                {/* FIX: Inline link input — works with or without text selection */}
                 {showLinkInput && (
                   <div className="flex items-center gap-2 mb-2 p-2 bg-blue-50 rounded-lg border border-brand-100">
-                    <input type="url" placeholder="Select text above, then paste URL here"
-                      value={linkInputValue} onChange={(e) => setLinkInputValue(e.target.value)}
+                    <input
+                      type="url"
+                      placeholder="Paste a URL and press Enter"
+                      value={linkInputValue}
+                      onChange={(e) => setLinkInputValue(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddInlineLink()}
-                      className="flex-1 text-xs border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-brand-300 bg-white" />
+                      autoFocus
+                      className="flex-1 text-xs border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-brand-300 bg-white"
+                    />
                     <button onClick={handleAddInlineLink}
-                      className="text-xs bg-brand-600 text-white px-3 py-1.5 rounded-lg hover:bg-brand-700 whitespace-nowrap">Apply link</button>
+                      className="text-xs bg-brand-600 text-white px-3 py-1.5 rounded-lg hover:bg-brand-700 whitespace-nowrap">
+                      Apply link
+                    </button>
                     <button onClick={() => { editor?.chain().focus().unsetLink().run(); setShowLinkInput(false) }}
                       className="text-xs text-gray-400 hover:text-red-500">✕</button>
                   </div>
@@ -283,7 +318,7 @@ export function PostComposer({
                             className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-brand-300 focus:ring-1 focus:ring-brand-100" />
                           <button
                             disabled={!ytId}
-                            onClick={() => { if (ytId) { setYoutubeUrl(youtubeInput); setActiveMedia('youtube'); setShowMediaPanel(false) }}}
+                            onClick={() => { if (ytId) { setYoutubeUrl(youtubeInput); setActiveMedia('youtube'); setShowMediaPanel(false) } }}
                             className="text-xs bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
                             Embed
                           </button>
