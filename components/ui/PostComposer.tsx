@@ -2,7 +2,6 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import LinkExt from '@tiptap/extension-link'
-import Autolink from '@tiptap/extension-autolink'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -65,25 +64,22 @@ export function PostComposer({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      // FIX: Autolink converts plain-text URLs to <a> tags as user types/pastes
-      Autolink.configure({
-        defaultProtocol: 'https',
-      }),
       LinkExt.configure({
         openOnClick: true,
-        autolink: false, // Let Autolink extension own auto-detection
+        autolink: false,
         HTMLAttributes: {
           class: 'text-brand-600 underline cursor-pointer',
           rel: 'noopener noreferrer',
           target: '_blank',
         },
       }),
-      Placeholder.configure({ placeholder: 'Share something with the community…' }),
+      Placeholder.configure({
+        placeholder: 'Share something with the community…',
+      }),
     ],
     content: initialContent,
     editorProps: { attributes: { class: 'ProseMirror' } },
     onUpdate: ({ editor }) => {
-      // Auto-detect YouTube URL pasted into editor and convert to embed
       const text = editor.getText()
       const lines = text.split('\n')
       for (const line of lines) {
@@ -91,7 +87,6 @@ export function PostComposer({
         if (isYouTubeUrl(trimmed) && extractYouTubeId(trimmed) && !activeMedia) {
           setYoutubeUrl(trimmed)
           setActiveMedia('youtube')
-          // Remove the URL from editor content
           const html = editor.getHTML().replace(trimmed, '').replace(/<p><\/p>/g, '')
           editor.commands.setContent(html || '<p></p>')
           toast.success('YouTube video attached! 🎬')
@@ -111,35 +106,27 @@ export function PostComposer({
     reader.onload = (e) => {
       const result = e.target?.result as string
       setImagePreview(result)
-      setImageStoredUrl('') // will be uploaded on submit
+      setImageStoredUrl('')
     }
     reader.readAsDataURL(file)
     setActiveMedia('image')
     setShowMediaPanel(false)
   }
 
-  // FIX: Inserts URL as clickable link even when no text is selected
   const handleAddInlineLink = useCallback(() => {
     if (!linkInputValue) return
     const url = linkInputValue.startsWith('http') ? linkInputValue : `https://${linkInputValue}`
-
     const { from, to } = editor?.state.selection ?? { from: 0, to: 0 }
     const hasSelection = from !== to
-
     if (hasSelection) {
-      // Wrap selected text as a hyperlink
       editor?.chain().focus().setLink({ href: url, target: '_blank' }).run()
     } else {
-      // No selection — insert the URL itself as a clickable link
       editor
         ?.chain()
         .focus()
-        .insertContent(
-          `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
-        )
+        .insertContent(`<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`)
         .run()
     }
-
     setLinkInputValue('')
     setShowLinkInput(false)
   }, [editor, linkInputValue])
@@ -150,8 +137,6 @@ export function PostComposer({
     setLoading(true)
     try {
       let finalImageUrl = imageStoredUrl
-
-      // Upload local image file
       if (imageFile && activeMedia === 'image') {
         const formData = new FormData()
         formData.append('file', imageFile)
@@ -160,11 +145,9 @@ export function PostComposer({
           const { url } = await uploadRes.json()
           finalImageUrl = url
         } else {
-          // Fallback: use base64 data URL from preview
           finalImageUrl = imagePreview || ''
         }
       }
-
       const method = postId ? 'PATCH' : 'POST'
       const url = postId ? `/api/posts/${postId}` : '/api/posts'
       const res = await fetch(url, {
@@ -240,7 +223,7 @@ export function PostComposer({
                   </button>
                 </div>
 
-                {/* FIX: Inline link input — works with or without text selection */}
+                {/* Inline link input */}
                 {showLinkInput && (
                   <div className="flex items-center gap-2 mb-2 p-2 bg-blue-50 rounded-lg border border-brand-100">
                     <input
@@ -266,9 +249,7 @@ export function PostComposer({
                   <EditorContent editor={editor} />
                 </div>
 
-                {/* ─── Media previews ─── */}
-
-                {/* YouTube preview — like Skool */}
+                {/* YouTube preview */}
                 {activeMedia === 'youtube' && youtubeId && (
                   <div className="relative mb-3 rounded-xl overflow-hidden bg-black group/yt" style={{ aspectRatio: '16/9' }}>
                     <iframe src={`https://www.youtube.com/embed/${youtubeId}?rel=0`}
@@ -299,14 +280,13 @@ export function PostComposer({
                   </div>
                 )}
 
-                {/* ─── Media attachment panel ─── */}
+                {/* Media attachment panel */}
                 {showMediaPanel && !activeMedia && (
                   <div className="mb-3 border border-gray-200 rounded-xl overflow-hidden">
                     <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Attach media</p>
                     </div>
                     <div className="p-3 space-y-3">
-
                       {/* YouTube embed */}
                       <div>
                         <p className="text-xs text-gray-500 mb-1.5 flex items-center gap-1.5">
@@ -374,10 +354,9 @@ export function PostComposer({
                   </div>
                 )}
 
-                {/* ─── Bottom action bar ─── */}
+                {/* Bottom action bar */}
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-1">
-                    {/* Upload local image */}
                     <button type="button" title="Upload image from device" onClick={() => fileRef.current?.click()}
                       className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -387,7 +366,6 @@ export function PostComposer({
                     <input ref={fileRef} type="file" accept="image/*" className="hidden"
                       onChange={(e) => { if (e.target.files?.[0]) handleImageFile(e.target.files[0]) }} />
 
-                    {/* YouTube / media panel */}
                     <button type="button" title="Attach YouTube, image URL or link"
                       onClick={() => setShowMediaPanel(!showMediaPanel)}
                       className={`p-2 rounded-lg transition-colors ${showMediaPanel ? 'bg-red-50 text-red-500' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
@@ -396,7 +374,6 @@ export function PostComposer({
                       </svg>
                     </button>
 
-                    {/* Category */}
                     <select value={category} onChange={(e) => setCategory(e.target.value)}
                       className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 bg-white outline-none focus:border-brand-300 ml-1">
                       {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
