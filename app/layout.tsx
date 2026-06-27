@@ -1,6 +1,12 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
-import { Providers } from '@/components/Providers'
+import { Navbar } from '@/components/layout/Navbar'
+import { Toaster } from 'react-hot-toast'
+import { auth } from '@/lib/auth'
+import { SessionProvider } from '@/components/layout/SessionProvider'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Promptly — Build in Public Community',
@@ -9,13 +15,28 @@ export const metadata: Metadata = {
     title: 'Promptly Community',
     description: 'Build in public with builders, creators, and indie hackers.',
   },
+  twitter: {
+    card: 'summary',
+    title: 'Promptly Community',
+    description: 'Build in public with builders, creators, and indie hackers.',
+  },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const session = await auth()
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <Providers>{children}</Providers>
+    <html lang="en">
+      <body className={inter.className}>
+        <SessionProvider session={session}>
+          <Navbar />
+          <main className="min-h-screen">{children}</main>
+          <Toaster position="bottom-right" />
+        </SessionProvider>
       </body>
     </html>
   )

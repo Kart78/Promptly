@@ -1,32 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   const session = await auth()
-  if (!session?.user?.id) return NextResponse.json([])
-
-  const notifications = await prisma.$queryRaw<any[]>`
-    SELECT id, type, message, read, "createdAt", link
-    FROM "Notification"
-    WHERE "userId" = ${session.user.id}
-    ORDER BY "createdAt" DESC
-    LIMIT 30
-  `
-
-  return NextResponse.json(notifications.map(n => ({
-    ...n,
-    createdAt: n.createdAt?.toISOString?.() ?? n.createdAt,
-  })))
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  const notifications = await prisma.notification.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 30,
+  })
+  return NextResponse.json(notifications)
 }
 
+// PATCH /api/notifications — mark all as read
 export async function PATCH() {
   const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ ok: false })
-
-  await prisma.$executeRaw`
-    UPDATE "Notification" SET read = true WHERE "userId" = ${session.user.id}
-  `
-
-  return NextResponse.json({ ok: true })
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  await prisma.notification.updateMany({
+    where: { userId: session.user.id, read: false },
+    data: { read: true },
+  })
+  return NextResponse.json({ success: true })
 }
