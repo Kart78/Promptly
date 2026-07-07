@@ -1,27 +1,41 @@
 name: Keep Supabase Alive
-
 on:
   schedule:
-    # Runs every 3 days at 8:00 AM UTC
-    - cron: '0 8 */3 * *'
-  workflow_dispatch: # Allow manual trigger
-
+    # Runs every 6 hours
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase to prevent pausing
+      - name: Insert Supabase heartbeat
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/keep_alive?select=id&limit=1" \
+          response=$(curl -s -o response.txt -w "%{http_code}" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/keep_alive" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d '{"source":"github_actions","status":"alive"}')
+          echo "Insert Response: $response"
+          if [ "$response" != "201" ]; then
+            echo "❌ Insert failed"
+            cat response.txt
+            exit 1
+          fi
+
+      - name: Delete heartbeat older than 3 days
+        run: |
+          response=$(curl -s -o response.txt -w "%{http_code}" \
+            -X DELETE \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/keep_alive?created_at=lt.$(date -u -d '3 days ago' '+%Y-%m-%dT%H:%M:%SZ')" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
-          
-          echo "Response code: $response"
-          
-          if [ "$response" = "200" ]; then
-            echo "✅ Supabase is alive!"
+          echo "Delete Response: $response"
+          if [ "$response" = "204" ]; then
+            echo "✅ Old heartbeat records deleted"
           else
-            echo "❌ Ping failed with status: $response"
-            exit 1
+            echo "⚠️ Delete response: $response"
+            cat response.txt
           fi
