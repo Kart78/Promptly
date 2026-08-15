@@ -42,6 +42,7 @@ export default async function HomePage({ searchParams }: { searchParams: { categ
     where: { startAt: { gte: new Date() } },
     orderBy: { startAt: 'asc' },
   })
+  const community = await prisma.communitySettings.findUnique({ where: { id: 'singleton' } })
 
   const currentUser = session?.user ? {
     id: session.user.id!,
@@ -76,7 +77,7 @@ export default async function HomePage({ searchParams }: { searchParams: { categ
         </div>
       </div>
 
-      <Sidebar memberCount={memberCount} onlineCount={1} adminCount={adminCount} leaderboard={leaderboard as any} />
+      <Sidebar memberCount={memberCount} onlineCount={1} adminCount={adminCount} leaderboard={leaderboard as any} community={community} />
     </div>
   )
 }
