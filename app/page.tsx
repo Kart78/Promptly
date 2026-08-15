@@ -42,7 +42,12 @@ export default async function HomePage({ searchParams }: { searchParams: { categ
     where: { startAt: { gte: new Date() } },
     orderBy: { startAt: 'asc' },
   })
-  const community = await prisma.communitySettings.findUnique({ where: { id: 'singleton' } })
+  // Fall back to defaults (rendered by Sidebar) if the table isn't there yet
+  // (e.g. `prisma db push` hasn't been run against this database) — a missing
+  // branding row should never take down the whole homepage.
+  const community = await prisma.communitySettings
+    .findUnique({ where: { id: 'singleton' } })
+    .catch(() => null)
 
   const currentUser = session?.user ? {
     id: session.user.id!,
