@@ -9,39 +9,29 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String         @unique
   emailVerified DateTime?
   image         String?
-  username      String?   @unique
-  password      String?
-  role          Role      @default(MEMBER)
   bio           String?
-  xp            Int       @default(0)
-  level         Int       @default(1)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
+  role          Role           @default(MEMBER)
+  xp            Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  level         Int            @default(1)
+  password      String?
+  username      String?        @unique
   accounts      Account[]
-  sessions      Session[]
-  posts         Post[]
   comments      Comment[]
-  likes         Like[]
-  followers     Follow[]       @relation("following")
   following     Follow[]       @relation("follower")
+  followers     Follow[]       @relation("following")
+  likes         Like[]
   notifications Notification[]
+  posts         Post[]
+  sessions      Session[]
 }
 
-enum Role {
-  USER
-  MEMBER
-  MODERATOR
-  ADMIN
-}
-
-// Singleton row (id always "singleton") holding community-wide branding,
-// editable by admins in Settings — mirrors Skool's community banner/thumbnail.
 model CommunitySettings {
   id          String   @id @default("singleton")
   name        String   @default("Promptly")
@@ -49,7 +39,7 @@ model CommunitySettings {
   description String   @default("A community for builders, indie developers, and creators. Share wins, discover tools, and grow together.")
   logoUrl     String?
   bannerUrl   String?
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now()) @updatedAt
 }
 
 model Account {
@@ -79,55 +69,51 @@ model Session {
 }
 
 model Post {
-  id           String   @id @default(cuid())
-  title        String?
-  content      String
-  category     String   @default("general")
-  pinned       Boolean  @default(false)
-  authorId     String
-  // Media attachments — Skool parity
-  youtubeUrl   String?
-  imageUrl     String?
-  linkUrl      String?
-  linkTitle    String?
-  linkImage    String?
-  fileUrl      String?
-  fileName     String?
-  fileType     String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments  Comment[]
-  likes     Like[]
+  id         String    @id @default(cuid())
+  title      String?
+  content    String
+  category   String    @default("general")
+  pinned     Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  authorId   String
+  fileName   String?
+  fileType   String?
+  fileUrl    String?
+  imageUrl   String?
+  linkImage  String?
+  linkTitle  String?
+  linkUrl    String?
+  youtubeUrl String?
+  comments   Comment[]
+  likes      Like[]
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   content   String
-  postId    String
+  createdAt DateTime  @default(now())
   authorId  String
+  postId    String
   parentId  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  post     Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  parent   Comment?  @relation("replies", fields: [parentId], references: [id])
-  replies  Comment[] @relation("replies")
-  likes    Like[]
+  updatedAt DateTime  @updatedAt
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("replies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("replies")
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes     Like[]
 }
 
 model Like {
   id        String   @id @default(cuid())
   userId    String
   postId    String?
-  commentId String?
   createdAt DateTime @default(now())
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
-  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
   @@unique([userId, commentId])
@@ -138,9 +124,8 @@ model Follow {
   followerId  String
   followingId String
   createdAt   DateTime @default(now())
-
-  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
-  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
 }
@@ -148,20 +133,12 @@ model Follow {
 model Notification {
   id        String           @id @default(cuid())
   userId    String
-  type      NotificationType
   message   String
   read      Boolean          @default(false)
   link      String?
   createdAt DateTime         @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-enum NotificationType {
-  LIKE
-  COMMENT
-  FOLLOW
-  MENTION
+  type      NotificationType
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -172,4 +149,25 @@ model Event {
   endAt       DateTime?
   link        String?
   createdAt   DateTime  @default(now())
+}
+
+model keep_alive {
+  id         BigInt    @id @default(autoincrement())
+  source     String?
+  status     String?
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+enum Role {
+  USER
+  ADMIN
+  MEMBER
+  MODERATOR
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  MENTION
 }
