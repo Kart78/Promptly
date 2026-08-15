@@ -3,10 +3,31 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import LinkExt from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import TextStyle from '@tiptap/extension-text-style'
+import FontFamily from '@tiptap/extension-font-family'
+import Color from '@tiptap/extension-color'
+import { FontSize } from '@/lib/tiptap-font-size'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Avatar } from '@/components/ui/Avatar'
+
+const FONT_FAMILIES = [
+  { label: 'Default', value: '' },
+  { label: 'Sans', value: 'ui-sans-serif, system-ui, sans-serif' },
+  { label: 'Serif', value: 'ui-serif, Georgia, serif' },
+  { label: 'Mono', value: 'ui-monospace, "SFMono-Regular", monospace' },
+  { label: 'Comic', value: '"Comic Sans MS", "Comic Sans", cursive' },
+  { label: 'Cursive', value: '"Brush Script MT", cursive' },
+]
+
+const FONT_SIZES = [
+  { label: 'Small', value: '12px' },
+  { label: 'Normal', value: '' },
+  { label: 'Medium', value: '18px' },
+  { label: 'Large', value: '24px' },
+  { label: 'X-Large', value: '32px' },
+]
 
 const CATEGORIES = [
   { value: 'general', label: '💬 General Discussion' },
@@ -59,11 +80,17 @@ export function PostComposer({
   const [linkInputValue, setLinkInputValue] = useState('')
   const [youtubeInput, setYoutubeInput] = useState('')
   const [imageUrlInput, setImageUrlInput] = useState('')
+  const [showFontMenu, setShowFontMenu] = useState(false)
+  const [showSizeMenu, setShowSizeMenu] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
     extensions: [
       StarterKit,
+      TextStyle,
+      FontFamily.configure({ types: ['textStyle'] }),
+      FontSize,
+      Color.configure({ types: ['textStyle'] }),
       LinkExt.configure({
         openOnClick: true,
         autolink: false,
@@ -221,6 +248,70 @@ export function PostComposer({
                     className={`px-2 py-1 text-xs rounded transition-colors ${showLinkInput ? 'bg-brand-100 text-brand-700' : 'text-gray-400 hover:bg-gray-100'}`}>
                     🔗
                   </button>
+
+                  <span className="w-px h-4 bg-gray-100 mx-1" />
+
+                  {/* Font family */}
+                  <div className="relative">
+                    <button type="button" title="Font family"
+                      onClick={() => { setShowFontMenu(!showFontMenu); setShowSizeMenu(false) }}
+                      className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${showFontMenu ? 'bg-brand-100 text-brand-700' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'}`}>
+                      <span className="font-serif">A</span>
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    {showFontMenu && (
+                      <div className="absolute z-10 top-full left-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+                        {FONT_FAMILIES.map((f) => (
+                          <button key={f.label} type="button"
+                            onClick={() => {
+                              if (f.value) editor?.chain().focus().setFontFamily(f.value).run()
+                              else editor?.chain().focus().unsetFontFamily().run()
+                              setShowFontMenu(false)
+                            }}
+                            style={{ fontFamily: f.value || undefined }}
+                            className="w-full text-left px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Font size */}
+                  <div className="relative">
+                    <button type="button" title="Font size"
+                      onClick={() => { setShowSizeMenu(!showSizeMenu); setShowFontMenu(false) }}
+                      className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${showSizeMenu ? 'bg-brand-100 text-brand-700' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'}`}>
+                      <span>A</span><span className="text-[9px]">A</span>
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    {showSizeMenu && (
+                      <div className="absolute z-10 top-full left-0 mt-1 w-28 bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+                        {FONT_SIZES.map((s) => (
+                          <button key={s.label} type="button"
+                            onClick={() => {
+                              if (s.value) editor?.chain().focus().setFontSize(s.value).run()
+                              else editor?.chain().focus().unsetFontSize().run()
+                              setShowSizeMenu(false)
+                            }}
+                            className="w-full text-left px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Text color */}
+                  <label title="Text color" className="relative flex items-center px-1.5 py-1 rounded cursor-pointer text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+                    <span className="text-xs font-semibold" style={{ color: editor?.getAttributes('textStyle').color || undefined }}>A</span>
+                    <input
+                      type="color"
+                      onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()}
+                      value={editor?.getAttributes('textStyle').color || '#000000'}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </label>
                 </div>
 
                 {/* Inline link input */}
