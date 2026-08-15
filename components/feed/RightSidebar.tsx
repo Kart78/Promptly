@@ -3,29 +3,42 @@ import { prisma } from '@/lib/db'
 import { getLevelFromXP } from '@/lib/constants'
 
 export async function RightSidebar() {
-  const [topMembers, totalMembers] = await Promise.all([
+  const [topMembers, totalMembers, community] = await Promise.all([
     prisma.user.findMany({
       orderBy: { xp: 'desc' },
       take: 5,
       select: { id: true, name: true, image: true, username: true, xp: true },
     }),
     prisma.user.count(),
+    prisma.communitySettings.findUnique({ where: { id: 'singleton' } }).catch(() => null),
   ])
 
   const medals = ['🥇', '🥈', '🥉', '4', '5']
+  const name = community?.name || 'Promptly'
+  const url = community?.url || 'promptly.vercel.app'
+  const description =
+    community?.description ||
+    'A community for builders, indie developers, and creators. Share wins, discover tools, and grow together.'
 
   return (
     <aside className="sidebar-right">
       {/* Community card */}
       <div className="right-card">
+        {community?.bannerUrl && (
+          <img src={community.bannerUrl} alt="" className="right-card-banner" style={{ width: '100%', display: 'block', objectFit: 'cover', aspectRatio: '2.5 / 1' }} />
+        )}
         <div className="right-card-img">
-          <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: -2 }}>P</span>
+          {community?.logoUrl ? (
+            <img src={community.logoUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span style={{ fontSize: 40, fontWeight: 900, letterSpacing: -2 }}>{name[0]?.toUpperCase()}</span>
+          )}
         </div>
         <div className="right-card-body">
-          <div className="community-name">Promptly</div>
-          <div className="community-url">promptly.vercel.app</div>
+          <div className="community-name">{name}</div>
+          <div className="community-url">{url}</div>
           <div className="community-desc">
-            A community for builders, indie developers, and creators. Share wins, discover tools, and grow together.
+            {description}
           </div>
           <div className="community-links">
             <a href="/apps" className="community-link">
