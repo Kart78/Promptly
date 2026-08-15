@@ -28,7 +28,13 @@ function getYouTubeId(url: string): string | null {
 }
 
 function stripHtml(html: string) {
-  return html.replace(/<[^>]*>/g, '').trim()
+  return html
+    // block-level boundaries become a space so text doesn't run together
+    .replace(/<\/(p|div|h[1-6]|li|blockquote|pre)>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 // FIX: detect base64 or broken image in content
