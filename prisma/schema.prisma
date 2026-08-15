@@ -40,6 +40,18 @@ enum Role {
   ADMIN
 }
 
+// Singleton row (id always "singleton") holding community-wide branding,
+// editable by admins in Settings — mirrors Skool's community banner/thumbnail.
+model CommunitySettings {
+  id          String   @id @default("singleton")
+  name        String   @default("Promptly")
+  url         String   @default("promptly.vercel.app")
+  description String   @default("A community for builders, indie developers, and creators. Share wins, discover tools, and grow together.")
+  logoUrl     String?
+  bannerUrl   String?
+  updatedAt   DateTime @updatedAt
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
