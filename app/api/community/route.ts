@@ -13,7 +13,9 @@ const DEFAULTS = {
 }
 
 export async function GET() {
-  const settings = await prisma.communitySettings.findUnique({ where: { id: 'singleton' } })
+  const settings = await prisma.communitySettings
+    .findUnique({ where: { id: 'singleton' } })
+    .catch(() => null)
   return NextResponse.json(settings || DEFAULTS)
 }
 
