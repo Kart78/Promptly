@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Avatar } from '@/components/ui/Avatar'
 import { format } from 'timeago.js'
 import toast from 'react-hot-toast'
+import { ShareButton } from '@/components/ui/ShareButton'
 
 interface Post {
   id: string
@@ -184,6 +185,11 @@ export function PostCard({ post, currentUserId, onClick }: Props) {
                 </svg>
                 <span className="text-xs">{post._count.comments > 0 ? post._count.comments : 'Comment'}</span>
               </button>
+              <ShareButton
+                postId={post.id}
+                title={post.title}
+                className="text-gray-400 hover:text-brand-500 ml-auto"
+              />
             </div>
           </div>
 
