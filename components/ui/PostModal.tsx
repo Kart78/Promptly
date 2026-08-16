@@ -5,6 +5,7 @@ import { CommentSection } from '@/components/ui/CommentSection'
 import { format } from 'timeago.js'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { ShareButton } from '@/components/ui/ShareButton'
 
 interface Post {
   id: string
@@ -72,12 +73,20 @@ export function PostModal({ post, currentUser, onClose }: Props) {
     >
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
         {/* Close button */}
-        <button onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          <ShareButton
+            postId={post.id}
+            title={post.title}
+            variant="icon"
+            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600"
+          />
+          <button onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
 
         {/* YouTube embed */}
         {youtubeId && (
