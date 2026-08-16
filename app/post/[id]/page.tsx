@@ -5,6 +5,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import Link from 'next/link'
 import { format } from 'timeago.js'
 import { CommentSection } from '@/components/ui/CommentSection'
+import { ShareButton } from '@/components/ui/ShareButton'
 
 function extractYouTubeId(url: string): string | null {
   const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([^&\n?#]+)/)
@@ -52,20 +53,28 @@ export default async function PostDetailPage({ params }: { params: { id: string 
         )}
 
         <div className="p-5">
-          <div className="flex items-start gap-3 mb-4">
-            <Link href={`/profile/${post.author.id}`}>
-              <Avatar name={post.author.name || 'U'} image={post.author.image} size="md" role={post.author.role} />
-            </Link>
-            <div>
-              <Link href={`/profile/${post.author.id}`} className="font-semibold text-sm hover:underline">
-                {post.author.name}
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="flex items-start gap-3">
+              <Link href={`/profile/${post.author.id}`}>
+                <Avatar name={post.author.name || 'U'} image={post.author.image} size="md" role={post.author.role} />
               </Link>
-              <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5">
-                <span title={new Date(post.createdAt).toLocaleString()}>{format(new Date(post.createdAt))}</span>
-                <span>·</span>
-                <span className="capitalize">{post.category}</span>
+              <div>
+                <Link href={`/profile/${post.author.id}`} className="font-semibold text-sm hover:underline">
+                  {post.author.name}
+                </Link>
+                <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5">
+                  <span title={new Date(post.createdAt).toLocaleString()}>{format(new Date(post.createdAt))}</span>
+                  <span>·</span>
+                  <span className="capitalize">{post.category}</span>
+                </div>
               </div>
             </div>
+            <ShareButton
+              postId={post.id}
+              title={post.title}
+              variant="icon"
+              className="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 shrink-0"
+            />
           </div>
 
           {post.title && <h1 className="text-xl font-bold text-gray-900 mb-3">{post.title}</h1>}
